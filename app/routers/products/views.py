@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, Path, Query, Form, File, UploadFile
+from fastapi import APIRouter, Depends, Path, Query, Form, File, UploadFile, Request
 
 from .schemas import ProductsSchema, AddProductsSchema
 from app.db import get_db_session
@@ -34,10 +34,11 @@ async def add_product(
     response_model=list[ProductsSchema]
 )
 async def get_products(
+        request: Request,
         category: Annotated[str | None, Query()] = None,
         session: AsyncSession = Depends(get_db_session)
 ):
-    return await crud.get_products(category, session)
+    return await crud.get_products(request, category, session)
 
 
 
@@ -48,10 +49,11 @@ async def get_products(
     response_model=ProductsSchema
 )
 async def get_product(
+        request: Request,
         product_id: Annotated[int, Path(ge=1)],
         session: AsyncSession = Depends(get_db_session)
 ):
-    return await crud.get_product(product_id, session)
+    return await crud.get_product(request, product_id, session)
 
 
 @router.get(
