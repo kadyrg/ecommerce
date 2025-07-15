@@ -54,4 +54,18 @@ async def get_product(
     return await crud.get_product(product_id, session)
 
 
+@router.get(
+    path="/media/{product_image}",
+    summary="Get Image",
+    description="Get Image",
+    response_model=ProductsSchema
+)
+async def get_product_image(
+        product_image: Annotated[str, Path()],
+        session: AsyncSession = Depends(get_db_session)
+):
+    return await crud.get_product_image(product_image, session)
+
+
+
 

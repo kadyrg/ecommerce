@@ -1,11 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, UploadFile
+from starlette.responses import FileResponse
 from app.models import Products, Category
 from .schemas import ProductsSchema, AddProductsSchema
 from app.core import settings
 from pathlib import  Path
 import uuid
+
 async def get_product(product_id: int, session: AsyncSession) -> ProductsSchema:
     result = await session.execute(
         select(Products).where(Products.id == product_id)
@@ -61,3 +63,11 @@ async def add_product(name: str, description: str, image: UploadFile, price: flo
     session.add(product)
     await session.commit()
     return ProductsSchema.model_validate(product)
+
+
+async def get_product_image(product_image: str, session: AsyncSession) -> UploadFile:
+    image_path = settings.media_files_path / product_image
+
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(path=image_path, media_type="image/jpeg", filename=product_image)
