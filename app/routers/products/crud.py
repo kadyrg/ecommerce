@@ -29,17 +29,32 @@ async def get_product(request: Request, product_id: int, session: AsyncSession) 
     )
 
 
-async def get_products(request: Request, category: str | None, session: AsyncSession) -> list[ProductsSchema]:
+async def get_products(
+    request: Request,
+    category: str | None,
+    session: AsyncSession
+) -> list[ProductsSchema]:
 
     stmt = select(Products)
     if category:
         stmt = stmt.where(Products.category.has(name=category))
 
     result = await session.execute(stmt)
-
     products = result.scalars().all()
 
-    return [ProductsSchema.model_validate(product) for product in products]
+    product_list = []
+    for product in products:
+        image_url = f"{request.base_url}media/{product.image}"
+        product_data = ProductsSchema(
+            id=product.id,
+            name=product.name,
+            description=product.description,
+            price=product.price,
+            image=image_url
+        )
+        product_list.append(product_data)
+
+    return product_list
 
 async def add_product(name: str, description: str, image: UploadFile, price: float, category_name: str, session: AsyncSession) -> ProductsSchema:
     result = await session.execute(
